@@ -1,0 +1,7 @@
+import React,{useState} from "react";
+import { ScrollView,Text } from "react-native";
+import { router } from "expo-router";
+import { Screen,Heading,Field,Button,Label } from "@/components/ui";
+import { usePulsus } from "@/context/PulsusContext";
+import { colors } from "@/constants/theme";
+export default function NewProjectScreen(){const [title,setTitle]=useState("");const [description,setDescription]=useState("");const [hours,setHours]=useState("4");const [budget,setBudget]=useState("0");const {addProject}=usePulsus();return <Screen><ScrollView keyboardShouldPersistTaps="handled"><Text onPress={()=>router.back()} style={{color:colors.blue,fontWeight:"700",marginBottom:24}}>‹ Volver</Text><Heading subtitle="Empezá pequeño. Un proyecto puede crecer cuando tenga sentido.">Nuevo proyecto</Heading><Label>Nombre</Label><Field value={title} onChangeText={setTitle} placeholder="¿En qué querés trabajar?"/><Label>Descripción (opcional)</Label><Field value={description} onChangeText={setDescription} placeholder="¿Qué querés conseguir?" multiline style={{minHeight:90,textAlignVertical:"top"}}/><Label>Horas por semana</Label><Field value={hours} onChangeText={setHours} keyboardType="decimal-pad"/><Label>Presupuesto inicial en USD</Label><Field value={budget} onChangeText={setBudget} keyboardType="decimal-pad"/><Button title="Crear proyecto" disabled={!title.trim()} onPress={()=>{addProject(title,description,Math.max(0,Number(hours.replace(",","."))||0),Math.max(0,Number(budget.replace(",","."))||0));router.replace("/(tabs)/projects")}}/></ScrollView></Screen>}
