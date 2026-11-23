@@ -3,8 +3,25 @@ import { ScrollView,Text,View } from "react-native";
 import { Screen,Heading,Card,Pill } from "@/components/ui";
 import { usePulsus } from "@/context/PulsusContext";
 import { colors } from "@/constants/theme";
-export default function BalanceScreen(){const {projects,sessions}=usePulsus();const active=projects.filter(p=>p.status==="active");const total=sessions.reduce((n,s)=>n+s.minutes,0);const today=sessions.filter(s=>new Date(s.date).toDateString()===new Date().toDateString()).reduce((n,s)=>n+s.minutes,0);return <Screen><ScrollView contentContainerStyle={{paddingBottom:32}} showsVerticalScrollIndicator={false}><Heading subtitle="No se trata de llenar cada hora. Se trata de que tus proyectos tengan un lugar, sin ocuparlo todo.">Tu equilibrio</Heading>
-<Card style={{backgroundColor:"#1B2742",borderColor:"#344A78"}}><Pill>Una mirada amable</Pill><Text style={{color:colors.text,fontSize:20,lineHeight:28,fontWeight:"700"}}>Tu tiempo también es parte del proyecto.</Text><Text style={{color:"#B6C2DC",lineHeight:21}}>Pulsus todavía no mide automáticamente tu semana. Registrá sesiones para empezar a reconocer tus patrones, sin juzgarte.</Text></Card>
-<View style={{flexDirection:"row",gap:10,marginTop:14}}><Card style={{flex:1}}><Text style={{color:colors.muted,fontSize:12}}>Hoy</Text><Text style={{color:colors.text,fontSize:25,fontWeight:"700"}}>{today} min</Text></Card><Card style={{flex:1}}><Text style={{color:colors.muted,fontSize:12}}>Total registrado</Text><Text style={{color:colors.text,fontSize:25,fontWeight:"700"}}>{Math.round(total/60*10)/10} h</Text></Card></View>
-<Text style={{color:colors.text,fontSize:18,fontWeight:"700",marginTop:24,marginBottom:12}}>Atención en proyectos</Text>{active.length===0?<Card><Text style={{color:colors.muted}}>Cuando tengas proyectos activos y registres tiempo, vas a poder ver acá cómo se distribuye tu atención.</Text></Card>:active.map(p=>{const hours=p.minutesLogged/60;const pct=Math.min(100,p.weeklyHours>0?hours/p.weeklyHours*100:0);return <Card key={p.id} style={{marginBottom:10}}><View style={{flexDirection:"row",justifyContent:"space-between"}}><Text style={{color:colors.text,fontWeight:"700",flex:1}}>{p.title}</Text><Pill tone={pct>=100?"amber":"blue"}>{Math.round(pct)}% del presupuesto</Pill></View><View style={{height:7,backgroundColor:colors.surface2,borderRadius:9,overflow:"hidden"}}><View style={{height:7,width:pct+"%",backgroundColor:pct>=100?colors.amber:colors.blue,borderRadius:9}}/></View><Text style={{color:colors.muted,fontSize:12}}>{Math.round(hours*10)/10} h registradas · {p.weeklyHours} h reservadas por semana</Text></Card>})}
-<Text style={{color:colors.muted,fontSize:12,marginTop:12,lineHeight:19}}>En una próxima versión podrás definir áreas de tu vida y establecer una distribución semanal que tenga sentido para vos.</Text></ScrollView></Screen>}
+function startOfWeek(date:Date){const d=new Date(date);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d}
+export default function BalanceScreen(){
+ const {projects,sessions}=usePulsus();
+ const active=projects.filter(p=>p.status==="active");
+ const total=sessions.reduce((n,s)=>n+s.minutes,0);
+ const now=new Date();const today=sessions.filter(s=>new Date(s.date).toDateString()===now.toDateString()).reduce((n,s)=>n+s.minutes,0);
+ const weekStart=startOfWeek(now);
+ const thisWeek=sessions.filter(s=>new Date(s.date)>=weekStart);
+ return <Screen><ScrollView contentContainerStyle={{paddingBottom:32}} showsVerticalScrollIndicator={false}>
+ <Heading subtitle="No se trata de llenar cada hora. Se trata de que tus proyectos tengan un lugar, sin ocuparlo todo.">Tu equilibrio</Heading>
+ <Card style={{backgroundColor:"#1B2742",borderColor:"#344A78"}}><Pill>Una mirada amable</Pill><Text style={{color:colors.text,fontSize:20,lineHeight:28,fontWeight:"700"}}>Tu tiempo también es parte del proyecto.</Text><Text style={{color:"#B6C2DC",lineHeight:21}}>Pulsus no mide automáticamente tu semana. Registrá sesiones para reconocer tus patrones, sin juzgarte.</Text></Card>
+ <View style={{flexDirection:"row",gap:10,marginTop:14}}><Card style={{flex:1}}><Text style={{color:colors.muted,fontSize:12}}>Hoy</Text><Text style={{color:colors.text,fontSize:25,fontWeight:"700"}}>{today} min</Text></Card><Card style={{flex:1}}><Text style={{color:colors.muted,fontSize:12}}>Esta semana</Text><Text style={{color:colors.text,fontSize:25,fontWeight:"700"}}>{Math.round(thisWeek.reduce((n,s)=>n+s.minutes,0)/60*10)/10} h</Text></Card></View>
+ <Text style={{color:colors.text,fontSize:18,fontWeight:"700",marginTop:24,marginBottom:12}}>Atención en proyectos</Text>
+ {active.length===0?<Card><Text style={{color:colors.muted}}>Cuando tengas proyectos activos y registres tiempo, vas a poder ver acá cómo se distribuye tu atención.</Text></Card>:active.map(p=>{
+  const weeklyMinutes=thisWeek.filter(s=>s.projectId===p.id).reduce((n,s)=>n+s.minutes,0);
+  const weeklyHours=weeklyMinutes/60;
+  const pct=Math.min(100,p.weeklyHours>0?weeklyHours/p.weeklyHours*100:0);
+  return <Card key={p.id} style={{marginBottom:10}}><View style={{flexDirection:"row",justifyContent:"space-between"}}><Text style={{color:colors.text,fontWeight:"700",flex:1}}>{p.title}</Text><Pill tone={pct>=100?"amber":"blue"}>{Math.round(pct)}% del presupuesto semanal</Pill></View><View style={{height:7,backgroundColor:colors.surface2,borderRadius:9,overflow:"hidden"}}><View style={{height:7,width:pct+"%",backgroundColor:pct>=100?colors.amber:colors.blue,borderRadius:9}}/></View><Text style={{color:colors.muted,fontSize:12}}>{Math.round(weeklyHours*10)/10} h esta semana · {p.weeklyHours} h reservadas</Text></Card>
+ })}
+ <Text style={{color:colors.muted,fontSize:12,marginTop:12,lineHeight:19}}>La comparación se reinicia cada lunes. El objetivo es darte información para decidir, no calificar tu semana.</Text>
+ </ScrollView></Screen>
+}
