@@ -1,0 +1,1 @@
+{"expo":{"name":"Pulsus","slug":"pulsus","scheme":"pulsus","version":"1.0.0","orientation":"portrait","userInterfaceStyle":"dark","newArchEnabled":true,"splash":{"backgroundColor":"#10131B"},"ios":{"supportsTablet":true,"bundleIdentifier":"me.pulsus.app"},"android":{"package":"me.pulsus.app"},"plugins":["expo-router"]}}
